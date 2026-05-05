@@ -1,0 +1,9 @@
+{
+  "architect": {
+    "provider": "mimo",
+    "model": "mimo-v2.5-pro",
+    "thinkingLevel": "high",
+    "tools": ["read", "bash", "grep"],
+    "instructions": "instructions/architect-mode.md"
+  }
+}
