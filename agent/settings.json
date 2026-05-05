@@ -1,6 +1,11 @@
 {
+  "npmCommand": [
+    "bun"
+  ],
   "lastChangelogVersion": "0.73.0",
-  "packages": [],
+  "packages": [
+    "npm:pi-mcp-adapter"
+  ],
   "extensions": [
     "~/.bun/install/global/node_modules/@mariozechner/pi-coding-agent/examples/extensions/subagent",
     "~/.bun/install/global/node_modules/@mariozechner/pi-coding-agent/examples/extensions/permission-gate.ts",
