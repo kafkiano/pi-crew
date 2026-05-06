@@ -1,7 +1,7 @@
 ---
 name: reviewer
 description: Code review specialist for quality and security analysis
-model: zai/glm-5.1
+model: deepseek/deepseek-v4-pro
 thinking: high
 tools: read, grep, find, ls, bash
 ---

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "cuba-memorys": {
+      "command": "/home/dude/github/mcp-servers/cuba-memorys/rust/target/release/cuba-memorys",
+      "env": {
+        "DATABASE_URL": "postgresql://pi:pi123@127.0.0.1:5432/pi_memory"
+      }
+    }
+  }
+}

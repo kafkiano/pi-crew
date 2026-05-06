@@ -1,7 +1,7 @@
 ---
 name: planner
 description: Creates implementation plans from context and requirements
-model: zai/glm-5.1
+model: mimo/mimo-V2.5-pro
 thinking: high
 tools: read, grep, find, ls
 ---
