@@ -15,7 +15,7 @@
  * - Captures early-session learnings (no 60% waiting)
  */
 
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 
 // Configuration
 const NUDGE_INTERVAL = 10;    // Nudge every N turns from the start
