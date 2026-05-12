@@ -1,5 +1,5 @@
 ---
-name: cuba-memory
+name: memory
 description: Persistent long-term memory. Use when learning something non-obvious, recalling prior context, verifying claims before answering, tracking sessions, or recording decisions. NOT for routine operations.
 ---
 
