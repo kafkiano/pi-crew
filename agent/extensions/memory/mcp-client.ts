@@ -93,18 +93,19 @@ export class McpStdioClient {
   }
 
   stop(): void {
-    // Clear all pending timeouts to prevent them from keeping the event loop alive
+    // Reject all pending calls so their promises resolve (don't hang)
     for (const [, call] of this.pending) {
       clearTimeout(call.timeout);
+      call.reject(new Error("MCP client stopped"));
     }
     this.pending.clear();
 
     if (this.process) {
-      // Destroy pipes first to remove event loop references
+      // Destroy pipes to remove event loop references
       try { this.process.stdin?.destroy(); } catch {}
       try { this.process.stdout?.destroy(); } catch {}
       try { this.process.stderr?.destroy(); } catch {}
-      // Remove all listeners to prevent them from holding references
+      // Remove all listeners
       this.process.removeAllListeners();
       // Kill the process
       try { this.process.kill(); } catch {}
@@ -126,12 +127,6 @@ export class McpStdioClient {
       name,
       arguments: args,
     })) as McpToolResult;
-
-    // Kill the child process after each tool call completes.
-    // In -p --no-session mode, session_shutdown may not fire, leaving the
-    // cuba-memorys child alive and preventing exit. Proactively killing it
-    // after each call ensures the process can exit cleanly.
-    this.stop();
 
     return result;
   }
