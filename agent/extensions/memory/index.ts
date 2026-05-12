@@ -40,8 +40,32 @@ export default function (pi: ExtensionAPI) {
     ctx.ui.setStatus("mem", ctx.ui.theme.fg("accent", "mem: on"));
   });
 
-  // Clean up on session shutdown
+  // Clean up on session shutdown (normal interactive mode)
   pi.on("session_shutdown", async () => {
     client.stop();
   });
+
+  // Fallback: clean up when agent ends in -p --no-session mode.
+  // In print mode, session_shutdown may not fire, leaving the cuba-memorys
+  // child process alive and preventing exit.
+  //
+  // We use process.on("exit") as a last resort because it's synchronous
+  // and guaranteed to fire when the process actually exits.
+  let cleaned = false;
+  const cleanup = () => {
+    if (cleaned) return;
+    cleaned = true;
+    client.stop();
+  };
+
+  pi.on("agent_end", async () => {
+    cleanup();
+  });
+
+  pi.on("session_shutdown", async () => {
+    cleanup();
+  });
+
+  // Synchronous cleanup on process exit — last resort
+  process.on("exit", cleanup);
 }

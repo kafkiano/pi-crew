@@ -27,6 +27,7 @@ interface JsonRpcResponse {
 interface PendingCall {
   resolve: (value: unknown) => void;
   reject: (error: Error) => void;
+  timeout: ReturnType<typeof setTimeout>;
 }
 
 export class McpStdioClient {
@@ -69,6 +70,7 @@ export class McpStdioClient {
         this.process = null;
         this.initialized = false;
         for (const [, call] of this.pending) {
+          clearTimeout(call.timeout);
           call.reject(new Error("MCP process exited"));
         }
         this.pending.clear();
@@ -91,8 +93,21 @@ export class McpStdioClient {
   }
 
   stop(): void {
+    // Clear all pending timeouts to prevent them from keeping the event loop alive
+    for (const [, call] of this.pending) {
+      clearTimeout(call.timeout);
+    }
+    this.pending.clear();
+
     if (this.process) {
-      this.process.kill();
+      // Destroy pipes first to remove event loop references
+      try { this.process.stdin?.destroy(); } catch {}
+      try { this.process.stdout?.destroy(); } catch {}
+      try { this.process.stderr?.destroy(); } catch {}
+      // Remove all listeners to prevent them from holding references
+      this.process.removeAllListeners();
+      // Kill the process
+      try { this.process.kill(); } catch {}
       this.process = null;
       this.initialized = false;
     }
@@ -112,6 +127,12 @@ export class McpStdioClient {
       arguments: args,
     })) as McpToolResult;
 
+    // Kill the child process after each tool call completes.
+    // In -p --no-session mode, session_shutdown may not fire, leaving the
+    // cuba-memorys child alive and preventing exit. Proactively killing it
+    // after each call ensures the process can exit cleanly.
+    this.stop();
+
     return result;
   }
 
@@ -125,23 +146,28 @@ export class McpStdioClient {
         ...(params ? { params } : {}),
       };
 
-      this.pending.set(id, { resolve, reject });
-
-      const message = JSON.stringify(request) + "\n";
-      this.process!.stdin!.write(message, (err) => {
-        if (err) {
-          this.pending.delete(id);
-          reject(err);
-        }
-      });
-
       // Timeout after 60 seconds
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         if (this.pending.has(id)) {
           this.pending.delete(id);
           reject(new Error(`MCP request timed out: ${method}`));
         }
       }, 60_000);
+
+      // Unref the timer so it doesn't prevent the process from exiting.
+      // The child process itself keeps the event loop alive during tool execution.
+      timeout.unref();
+
+      this.pending.set(id, { resolve, reject, timeout });
+
+      const message = JSON.stringify(request) + "\n";
+      this.process!.stdin!.write(message, (err) => {
+        if (err) {
+          clearTimeout(timeout);
+          this.pending.delete(id);
+          reject(err);
+        }
+      });
     });
   }
 
@@ -167,6 +193,7 @@ export class McpStdioClient {
         const response = JSON.parse(line) as JsonRpcResponse;
         if (response.id !== undefined && this.pending.has(response.id)) {
           const call = this.pending.get(response.id)!;
+          clearTimeout(call.timeout);
           this.pending.delete(response.id);
 
           if (response.error) {
