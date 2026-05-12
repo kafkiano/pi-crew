@@ -4,7 +4,6 @@
   ],
   "lastChangelogVersion": "0.74.0",
   "packages": [
-    "npm:pi-mcp-adapter",
     "npm:pi-web-access"
   ],
   "extensions": [
@@ -16,7 +15,8 @@
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/session-name.ts",
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/bookmark.ts",
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/notify.ts",
-    "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/prompt-customizer.ts"
+    "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/prompt-customizer.ts",
+    "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/question.ts"
   ],
   "defaultProvider": "mimo",
   "defaultModel": "mimo-v2.5-pro",

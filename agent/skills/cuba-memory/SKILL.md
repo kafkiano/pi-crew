@@ -1,18 +1,18 @@
 ---
 name: cuba-memory
-description: Persistent long-term memory via cuba-memorys MCP. Use when learning something non-obvious, recalling prior context, verifying claims before answering, tracking sessions, or recording decisions. NOT for routine operations.
+description: Persistent long-term memory. Use when learning something non-obvious, recalling prior context, verifying claims before answering, tracking sessions, or recording decisions. NOT for routine operations.
 ---
 
-# Cuba Memory — Persistent Knowledge
+# Memory — Persistent Knowledge
 
 You have a persistent brain. It survives across sessions. Use it wisely.
 
 ## The Core Loop
 
 ```
-Learn → Entity + Observation + Relation
-Recall → Search before answering
-Correct → Feedback when wrong
+Learn -> Entity + Observation + Relation
+Recall -> Search before answering
+Correct -> Feedback when wrong
 ```
 
 ## When to WRITE
@@ -29,19 +29,19 @@ NOT for: routine file reads, command outputs, transient debugging state.
 
 ## When to READ
 
-- **Before answering** factual questions about past work → `cuba_faro`
-- **Before starting** a task that might have prior context → `cuba_faro`
-- **When uncertain** → `cuba_faro` with `mode: "verify"`
+- **Before answering** factual questions about past work -> `mem_search`
+- **Before starting** a task that might have prior context -> `mem_search`
+- **When uncertain** -> `mem_search` with `mode: "verify"`
 
 ## When to FEEDBACK
 
-- User corrects you → `cuba_eco` (negative or correct)
-- Something worked well → `cuba_eco` (positive)
+- User corrects you -> `mem_feedback` (negative or correct)
+- Something worked well -> `mem_feedback` (positive)
 - Important: this strengthens or weakens memories over time (Hebbian learning)
 
 ## Session Tracking
 
-Start sessions with `cuba_jornada` to track what you're working on. End with outcomes. This creates a timeline of work.
+Start sessions with `mem_session` to track what you're working on. End with outcomes. This creates a timeline of work.
 
 ## The Anti-Pattern: Reminder of a Reminder
 
@@ -69,50 +69,68 @@ You have three sub-agents that handle memory operations, keeping your context cl
 ### Delegation Pattern
 
 ```
-User asks question → subagent(agent="memory-recall", task="Find context about X")
-                   → Review returned context
-                   → Answer with grounding
+User asks question -> subagent(agent="memory-recall", task="Find context about X")
+                   -> Review returned context
+                   -> Answer with grounding
 
-Claim might be wrong → subagent(agent="memory-verify", task="Verify: claim Y", inheritContext=true)
-                      → Review confidence/evidence
-                      → Adjust answer if needed
+Claim might be wrong -> subagent(agent="memory-verify", task="Verify: claim Y", inheritContext=true)
+                      -> Review confidence/evidence
+                      -> Adjust answer if needed
 
-Learned something   → subagent(agent="memory-write", task="Consolidate: [what was learned]", inheritContext=true)
-                      → Agent handles entity/observation/relation creation
+Learned something   -> subagent(agent="memory-write", task="Consolidate: [what was learned]", inheritContext=true)
+                      -> Agent handles entity/observation/relation creation
 ```
 
 ## Workflow Summary
 
 ```
-Task starts → subagent(memory-recall) for context
-            → cuba_jornada start (track session)
-            
-Working...  → Learn something? → subagent(memory-write, inheritContext=true) to persist
-            → Hit an error?    → cuba_alarma (and check cuba_expediente)
-            → Make a decision? → cuba_decreto
-            → Uncertain?       → subagent(memory-verify, inheritContext=true) to ground
-            → Memory nudge?    → Every 10 turns, archive what you've learned
+Task starts -> subagent(memory-recall) for context
+            -> mem_session start (track session)
 
-Task ends   → cuba_jornada end (summarize outcomes)
-            → cuba_eco (feedback on what worked/didn't)
+Working...  -> Learn something? -> subagent(memory-write, inheritContext=true) to persist
+            -> Hit an error?    -> mem_report (and check mem_errors)
+            -> Make a decision? -> mem_decide
+            -> Uncertain?       -> subagent(memory-verify, inheritContext=true) to ground
+            -> Memory nudge?    -> Every 10 turns, archive what you've learned
+
+Task ends   -> mem_session end (summarize outcomes)
+            -> mem_feedback (feedback on what worked/didn't)
 ```
 
 ## Tools Quick Reference
 
 | Tool | Purpose | When |
 |------|---------|------|
-| `cuba_alma` | Create/manage entities | New concept, tech, person, pattern |
-| `cuba_cronica` | Add observations | Facts, lessons, preferences |
-| `cuba_puente` | Create relations | Connect entities (uses, causes, etc.) |
-| `cuba_faro` | Search memory | Before answering, grounding |
-| `cuba_eco` | Feedback | Correct, reinforce, weaken |
-| `cuba_alarma` | Report errors | When something breaks |
-| `cuba_remedio` | Resolve errors | When you fix something |
-| `cuba_expediente` | Search errors | Before trying similar approaches |
-| `cuba_jornada` | Session tracking | Start/end of work sessions |
-| `cuba_decreto` | Record decisions | Architecture/design choices |
-| `cuba_vigia` | Health check | Periodic graph analysis |
-| `cuba_reflexion` | Gap analysis | Find underconnected knowledge |
+| `mem_entity` | Create/manage entities | New concept, tech, person, pattern |
+| `mem_note` | Add observations | Facts, lessons, preferences |
+| `mem_relate` | Create relations | Connect entities (uses, causes, etc.) |
+| `mem_search` | Search memory | Before answering, grounding |
+| `mem_feedback` | Feedback | Correct, reinforce, weaken |
+| `mem_report` | Report errors | When something breaks |
+| `mem_resolve` | Resolve errors | When you fix something |
+| `mem_errors` | Search errors | Before trying similar approaches |
+| `mem_session` | Session tracking | Start/end of work sessions |
+| `mem_decide` | Record decisions | Architecture/design choices |
+| `mem_contra` | Check contradictions | After writing new observations |
+
+### Advanced Tools
+
+| Tool | Purpose |
+|------|---------|
+| `mem_analytics` | Knowledge graph analytics and health check |
+| `mem_gaps` | Gap analysis — find underconnected knowledge |
+| `mem_maintenance` | Memory maintenance — decay, pruning, merge, reembed |
+| `mem_hypothesize` | Abductive inference from observations |
+| `mem_trigger` | Set prospective memory triggers |
+| `mem_ingest` | Bulk knowledge ingestion |
+| `mem_forget` | GDPR erasure of entities |
+| `mem_buffer` | Working memory buffer |
+| `mem_calibrate` | Confidence calibration and trust scores |
+| `mem_project` | Project scoping and isolation |
+| `mem_snapshot` | Compaction survival (snapshot/restore) |
+| `mem_sync` | Git-friendly export/import |
+| `mem_audit` | Tamper-evident audit log |
+| `mem_judge` | LLM-judge for ambiguous conflicts |
 
 ## Entity Types
 

@@ -246,6 +246,7 @@ async function runSingleAgent(
 	onUpdate: OnUpdateCallback | undefined,
 	makeDetails: (results: SingleResult[]) => SubagentDetails,
 	contextContent?: string,
+	getMessages?: () => { role: string; content: any }[],
 ): Promise<SingleResult> {
 	const agent = agents.find((a) => a.name === agentName);
 
@@ -262,6 +263,16 @@ async function runSingleAgent(
 			step,
 		};
 	}
+
+	// Resolve context: caller's inheritContext > agent's inheritContext > none
+	const effectiveContext = (() => {
+		if (contextContent) return contextContent;
+		if (agent.inheritContext && getMessages) {
+			const maxMessages = typeof agent.inheritContext === "number" ? agent.inheritContext : 30;
+			return serializeSessionContext(getMessages(), maxMessages);
+		}
+		return undefined;
+	})();
 
 	const args: string[] = ["--mode", "json", "-p", "--no-session"];
 	if (agent.model) args.push("--model", agent.model);
@@ -293,8 +304,8 @@ async function runSingleAgent(
 
 	try {
 		// Merge system prompt with inherited context if present
-		const fullSystemPrompt = contextContent
-			? `${agent.systemPrompt}\n\n---\n\n## Parent Session Context\n\n${contextContent}`
+		const fullSystemPrompt = effectiveContext
+			? `${agent.systemPrompt}\n\n---\n\n## Parent Session Context\n\n${effectiveContext}`
 			: agent.systemPrompt;
 		if (fullSystemPrompt.trim()) {
 			const tmp = await writePromptToTempFile(agent.name, fullSystemPrompt);
@@ -490,7 +501,7 @@ export default function (pi: ExtensionAPI) {
 			const agents = discovery.agents;
 			const confirmProjectAgents = params.confirmProjectAgents ?? true;
 
-			// Extract context from parent session if inheritContext is set
+			// Extract context from parent session if inheritContext is set at call site
 			let contextContent: string | undefined;
 			if (params.inheritContext) {
 				const maxMessages = typeof params.inheritContext === "number" ? params.inheritContext : 30;
@@ -500,6 +511,14 @@ export default function (pi: ExtensionAPI) {
 					.map((e: any) => e.message);
 				contextContent = serializeSessionContext(messages, maxMessages);
 			}
+
+			// Callback for agents with per-agent inheritContext to lazily extract messages
+			const getMessages = () => {
+				const entries = ctx.sessionManager.getBranch();
+				return entries
+					.filter((e: any) => e.type === "message" && e.message)
+					.map((e: any) => e.message);
+			};
 
 			const hasChain = (params.chain?.length ?? 0) > 0;
 			const hasTasks = (params.tasks?.length ?? 0) > 0;
@@ -587,6 +606,7 @@ export default function (pi: ExtensionAPI) {
 						chainUpdate,
 						makeDetails("chain"),
 						contextContent,
+						getMessages,
 					);
 					results.push(result);
 
@@ -668,6 +688,7 @@ export default function (pi: ExtensionAPI) {
 						},
 						makeDetails("parallel"),
 						contextContent,
+						getMessages,
 					);
 					allResults[index] = result;
 					emitParallelUpdate();
@@ -703,6 +724,7 @@ export default function (pi: ExtensionAPI) {
 					onUpdate,
 					makeDetails("single"),
 					contextContent,
+					getMessages,
 				);
 				const isError = result.exitCode !== 0 || result.stopReason === "error" || result.stopReason === "aborted";
 				if (isError) {

@@ -13,6 +13,7 @@ export interface AgentConfig {
 	description: string;
 	tools?: string[];
 	model?: string;
+	inheritContext?: boolean | number;
 	systemPrompt: string;
 	source: "user" | "project";
 	filePath: string;
@@ -60,11 +61,23 @@ function loadAgentsFromDir(dir: string, source: "user" | "project"): AgentConfig
 			.map((t: string) => t.trim())
 			.filter(Boolean);
 
+		let inheritContext: boolean | number | undefined;
+		if (frontmatter.inheritContext !== undefined) {
+			if (frontmatter.inheritContext === "true") inheritContext = true;
+			else if (frontmatter.inheritContext === "false") inheritContext = undefined;
+			else {
+				const num = Number(frontmatter.inheritContext);
+				if (!isNaN(num) && num >= 1 && num <= 200) inheritContext = num;
+				else inheritContext = true;
+			}
+		}
+
 		agents.push({
 			name: frontmatter.name,
 			description: frontmatter.description,
 			tools: tools && tools.length > 0 ? tools : undefined,
 			model: frontmatter.model,
+			inheritContext,
 			systemPrompt: body,
 			source,
 			filePath,
