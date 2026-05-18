@@ -12,7 +12,7 @@ import { McpStdioClient } from "./mcp-client.js";
 import { getMemoryTools } from "./tools.js";
 
 const BINARY_PATH =
-  "/home/dude/github/mcp-servers/cuba-memorys/rust/target/release/cuba-memorys";
+  "./cuba-memorys-linux-x64";
 
 export default function (pi: ExtensionAPI) {
   const dbUrl = process.env.MEM_DATABASE_URL;
