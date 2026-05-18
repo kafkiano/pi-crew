@@ -1,13 +1,13 @@
 {
   "architect": {
-    "provider": "mimo",
-    "model": "mimo-v2.5-pro",
+    "provider": "deepseek",
+    "model": "deepseek-v4-pro",
     "thinkingLevel": "high",
     "instructions": "instructions/architect-mode.md"
   },
   "coder": {
-    "provider": "mimo",
-    "model": "mimo-v2.5-pro",
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
     "thinkingLevel": "high",
     "instructions": "instructions/coder-mode.md"
   }
