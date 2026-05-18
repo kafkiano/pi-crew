@@ -10,9 +10,11 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { McpStdioClient } from "./mcp-client.js";
 import { getMemoryTools } from "./tools.js";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const BINARY_PATH =
-  "./cuba-memorys-linux-x64";
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const BINARY_PATH = resolve(__dirname, "./cuba-memorys");
 
 export default function (pi: ExtensionAPI) {
   const dbUrl = process.env.MEM_DATABASE_URL;
