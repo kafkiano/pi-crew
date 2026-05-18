@@ -2,7 +2,7 @@
   "npmCommand": [
     "bun"
   ],
-  "lastChangelogVersion": "0.74.0",
+  "lastChangelogVersion": "0.75.1",
   "packages": [
     "npm:pi-web-access"
   ],
@@ -18,10 +18,10 @@
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/prompt-customizer.ts",
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/question.ts"
   ],
-  "defaultProvider": "mimo",
-  "defaultModel": "mimo-v2.5-pro",
+  "defaultProvider": "deepseek",
+  "defaultModel": "deepseek-v4-pro",
   "retry": {
     "enabled": true
   },
-  "defaultThinkingLevel": "high"
+  "defaultThinkingLevel": "xhigh"
 }
