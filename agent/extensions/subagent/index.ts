@@ -427,12 +427,18 @@ const ChainItem = Type.Object({
 	cwd: Type.Optional(Type.String({ description: "Working directory for the agent process" })),
 });
 
+const SubagentAction = StringEnum(["invoke", "list"] as const, {
+	description: 'Action: "invoke" to run agents (default), "list" to enumerate available agents.',
+	default: "invoke",
+});
+
 const AgentScopeSchema = StringEnum(["user", "project", "both"] as const, {
 	description: 'Which agent directories to use. Default: "user". Use "both" to include project-local agents.',
 	default: "user",
 });
 
 const SubagentParams = Type.Object({
+	action: Type.Optional(SubagentAction),
 	agent: Type.Optional(Type.String({ description: "Name of the agent to invoke (for single mode)" })),
 	task: Type.Optional(Type.String({ description: "Task to delegate (for single mode)" })),
 	tasks: Type.Optional(Type.Array(TaskItem, { description: "Array of {agent, task} for parallel execution" })),
@@ -492,6 +498,7 @@ export default function (pi: ExtensionAPI) {
 			"Modes: single (agent + task), parallel (tasks array), chain (sequential with {previous} placeholder).",
 			'Default agent scope is "user" (from ~/.pi/agent/agents).',
 			'To enable project-local agents in .pi/agents, set agentScope: "both" (or "project").',
+			'Use action: "list" to enumerate available agents (with their tools, models, and descriptions).',
 		].join(" "),
 		parameters: SubagentParams,
 
@@ -500,6 +507,26 @@ export default function (pi: ExtensionAPI) {
 			const discovery = discoverAgents(ctx.cwd, agentScope);
 			const agents = discovery.agents;
 			const confirmProjectAgents = params.confirmProjectAgents ?? true;
+
+			// LIST action — enumerate available agents
+			if ((params.action ?? "invoke") === "list") {
+				const listScope = params.agentScope ?? "user";
+				const listDiscovery = discoverAgents(params.cwd ?? ctx.cwd, listScope);
+				const lines: string[] = [];
+				for (const a of listDiscovery.agents) {
+					const toolsStr = a.tools && a.tools.length > 0 ? ` [tools: ${a.tools.join(", ")}]` : "";
+					const modelStr = a.model ? ` model:${a.model}` : "";
+					const inheritStr = a.inheritContext ? " inherit-context" : "";
+					lines.push(`- **${a.name}** (${a.source})${toolsStr}${modelStr}${inheritStr} — ${a.description}`);
+				}
+				const projectDirInfo = listDiscovery.projectAgentsDir
+					? `\nProject agents dir: \`${listDiscovery.projectAgentsDir}\``
+					: "";
+				const scopeInfo = `**Scope:** ${listScope} — ${listDiscovery.agents.length} agent(s) found${projectDirInfo}`;
+				return {
+					content: [{ type: "text", text: scopeInfo + "\n\n" + (lines.join("\n") || "_(none)_") }],
+				};
+			}
 
 			// Extract context from parent session if inheritContext is set at call site
 			let contextContent: string | undefined;
