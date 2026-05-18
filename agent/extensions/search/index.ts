@@ -12,7 +12,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const SCRIPT = resolve(__dirname, "extensions/search/search.sh");
+const SCRIPT = resolve(__dirname, "search.sh");
 
 function runSearch(args: string[]): Promise<{ stdout: string; stderr: string; code: number }> {
 	return new Promise((resolve) => {
@@ -32,7 +32,9 @@ const searchTool = defineTool({
 	description:
 		"Search the local codebase using BM25-ranked grep with subword tokenization. " +
 		"Matches camelCase/snake_case/kebab identifiers. Returns ranked JSON results " +
-		"with file, line, score, and content.",
+		"with file, line, score, and content. " +
+		"Searches source files (js, ts, py, rs, go, md, json, etc.) and skips " +
+		"vendor, build, dependency, and hidden directories.",
 	promptSnippet:
 		"Search the codebase with BM25 ranking — matches camelCase/snake_case identifiers, ranks by relevance",
 	promptGuidelines: [
@@ -40,18 +42,21 @@ const searchTool = defineTool({
 		"Use search with mode=files to find which files are relevant before reading them.",
 		"Use search with context>0 when you need to understand surrounding code, not just the match line.",
 		"Prefer search over grep for codebase exploration — it ranks results by relevance instead of dumping all matches.",
+		"The directory parameter must be a directory path (project root or subdirectory), NOT a file path.",
+		"For exact file path lookups or listing directory contents, use ls/find/bash instead of search.",
+		"When investigating errors, search for the error message or function name to find where it's raised/handled.",
 	],
 
 	parameters: Type.Object({
 		query: Type.String({ description: "Search query. Supports multi-word queries; identifiers are split into subwords automatically." }),
-		directory: Type.Optional(Type.String({ description: "Directory to search in (default: current working directory)." })),
+		directory: Type.Optional(Type.String({ description: "Root directory to search recursively (default: cwd). Must be an existing directory, not a file path." })),
 		top: Type.Optional(Type.Number({ description: "Number of top results to return (default: 10)." })),
 		mode: Type.Optional(
 			Type.Union([Type.Literal("lines"), Type.Literal("files")], {
-				description: "lines = rank individual lines (default); files = rank whole files, show top 3 representative lines each.",
+				description: "lines = rank individual matching lines (default, best for finding specific code snippets); files = rank whole files by aggregate score, show top 3 representative lines per file (best for discovering which files to read).",
 			}),
 		),
-		context: Type.Optional(Type.Number({ description: "Number of context lines before/after each match (default: 0)." })),
+		context: Type.Optional(Type.Number({ description: "Lines of surrounding code to show before/after each match (default: 0). Use 2-5 to understand context without a separate read call." })),
 		min_score: Type.Optional(Type.Number({ description: "Drop results below this score (default: 0)." })),
 	}),
 
