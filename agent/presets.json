@@ -7,7 +7,7 @@
   },
   "coder": {
     "provider": "deepseek",
-    "model": "deepseek-v4-flash",
+    "model": "deepseek-v4-pro",
     "thinkingLevel": "high",
     "instructions": "instructions/coder-mode.md"
   }

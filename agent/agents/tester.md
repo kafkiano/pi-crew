@@ -1,7 +1,7 @@
 ---
 name: tester
 description: Runs tests, type checks, and linters. Reports results without modifying code. Isolated from implementation to prevent escalation.
-model: mimo/mimo-V2.5
+model: deepseek/deepseek-v4-pro
 tools: read, bash, search, grep
 ---
 

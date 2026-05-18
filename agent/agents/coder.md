@@ -1,7 +1,7 @@
 ---
 name: coder
 description: Senior programmer who implements with surgical precision. Reads before writes, uses existing primitives, rejects unnecessary abstraction.
-model: deepseek/deepseek-v4-flash
+model: deepseek/deepseek-v4-pro
 thinking: high
 tools: read, write, edit, bash, search, grep
 ---
