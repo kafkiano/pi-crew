@@ -2,9 +2,10 @@
   "npmCommand": [
     "bun"
   ],
-  "lastChangelogVersion": "0.75.1",
+  "lastChangelogVersion": "0.75.5",
   "packages": [
-    "npm:pi-web-access"
+    "npm:pi-web-access",
+    "npm:pi-ollama-cloud"
   ],
   "extensions": [
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/permission-gate.ts",
