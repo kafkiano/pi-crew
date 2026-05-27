@@ -1,14 +1,14 @@
 {
   "architect": {
-    "provider": "deepseek",
-    "model": "deepseek-v4-pro",
+    "provider": "xiaomi-token-plan-ams",
+    "model": "mimo-v2.5-pro",
     "thinkingLevel": "high",
     "instructions": "instructions/architect-mode.md"
   },
   "coder": {
     "provider": "deepseek",
     "model": "deepseek-v4-pro",
-    "thinkingLevel": "high",
+    "thinkingLevel": "xhigh",
     "instructions": "instructions/coder-mode.md"
   }
 }

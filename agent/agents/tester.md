@@ -2,6 +2,7 @@
 name: tester
 description: Runs tests, type checks, and linters. Reports results without modifying code. Isolated from implementation to prevent escalation.
 model: deepseek/deepseek-v4-pro
+thinking: xhigh
 tools: read, bash, search, grep
 ---
 
