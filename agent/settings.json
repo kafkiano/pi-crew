@@ -2,7 +2,7 @@
   "npmCommand": [
     "bun"
   ],
-  "lastChangelogVersion": "0.75.5",
+  "lastChangelogVersion": "0.78.0",
   "packages": [
     "npm:pi-web-access",
     "npm:pi-ollama-cloud"
@@ -19,10 +19,10 @@
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/prompt-customizer.ts",
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/question.ts"
   ],
-  "defaultProvider": "deepseek",
+  "defaultProvider": "ollama-cloud",
   "defaultModel": "deepseek-v4-pro",
   "retry": {
     "enabled": true
   },
-  "defaultThinkingLevel": "xhigh"
+  "defaultThinkingLevel": "high"
 }
