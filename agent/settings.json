@@ -24,5 +24,5 @@
   "retry": {
     "enabled": true
   },
-  "defaultThinkingLevel": "high"
+  "defaultThinkingLevel": "xhigh"
 }
