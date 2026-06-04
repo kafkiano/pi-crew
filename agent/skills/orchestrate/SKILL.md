@@ -16,10 +16,10 @@ You orchestrate four agent types:
 2. **Architect** explores the codebase, researches externally, and drafts ACTION_PLAN.md
 3. **You** review the plan — adversarial check. Does it respect existing invariants? Are the trade-offs right? Send back with specific feedback if needed
 4. **You** create a branch: `git checkout -b feat/description`
-5. **Coder** implements step N on the branch (reads ACTION_PLAN.md)
+5. **Coder** implements the ACTION_PLAN.md
 6. **Tester** runs tests on the branch
 7. **You** review the result — pass or send back to coder with specific feedback
-8. Repeat steps 5-7 until all steps complete
+8. **You** Will eventually iterate steps 1-7 until the result meets your quality standards
 9. **You** merge the branch
 
 ## The Architect
