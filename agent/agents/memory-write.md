@@ -1,7 +1,7 @@
 ---
 name: memory-write
 description: Analyzes conversations and writes important knowledge to the persistent knowledge graph. Use at natural breakpoints to persist learned facts, decisions, errors, and patterns.
-model: deepseek/deepseek-v4-flash
+model: ollama-cloud/deepseek-v4-flash
 thinking: high
 tools: mem_entity, mem_note, mem_relate, mem_contra, mem_feedback, mem_gaps
 inheritContext: true

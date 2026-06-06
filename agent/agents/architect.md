@@ -1,7 +1,7 @@
 ---
 name: architect
 description: Systems architect for analysis, research, and planning. Produces evidence-backed architectural plans. Read-only — no implementation.
-model: xiaomi-token-plan-ams/mimo-v2.5-pro
+model: ollama-cloud/glm-5.1
 thinking: high
 tools: read, search, bash, web_search, fetch_content, code_search, subagent, mem_search, mem_note, mem_session, mem_decide
 inheritContext: true

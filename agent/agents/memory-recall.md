@@ -1,7 +1,7 @@
 ---
 name: memory-recall
 description: Retrieves relevant memories from the persistent knowledge graph. Use when the main agent needs context about past work, decisions, or learned facts.
-model: deepseek/deepseek-v4-flash
+model: ollama-cloud/deepseek-v4-flash
 thinking: high
 tools: mem_search, mem_errors, mem_entity, mem_relate, mem_analytics
 ---

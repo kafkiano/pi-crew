@@ -1,7 +1,7 @@
 ---
 name: memory-verify
 description: Verifies claims against stored knowledge in the persistent knowledge graph. Use when uncertain about a fact, to ground responses in evidence, or to check for contradictions.
-model: deepseek/deepseek-v4-flash
+model: ollama-cloud/deepseek-v4-flash
 thinking: high
 tools: mem_search, mem_contra, mem_calibrate
 inheritContext: true

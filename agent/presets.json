@@ -6,7 +6,7 @@
     "instructions": "instructions/architect-mode.md"
   },
   "coder": {
-    "provider": "xiaomi-token-plan-ams",
+    "provider": "ollama-cloud",
     "model": "mimo-v2.5-pro",
     "thinkingLevel": "high",
     "instructions": "instructions/coder-mode.md"

@@ -19,7 +19,7 @@
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/prompt-customizer.ts",
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/question.ts"
   ],
-  "defaultProvider": "ollama-cloud",
+  "defaultProvider": "deepseek",
   "defaultModel": "deepseek-v4-pro",
   "retry": {
     "enabled": true
