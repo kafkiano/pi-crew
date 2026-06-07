@@ -54,7 +54,7 @@ All 25 individual `mem_*` tools remain registered and callable by name (subagent
 
 ### Search Tool
 
-The `search` tool wraps `search/search.sh` — a BM25-scored code search with subword tokenization. It ranks results by relevance (not just text match), handles camelCase/snake_case splitting, and supports context lines.
+The `search` tool wraps `agent/extensions/search/search.sh` — a BM25-scored code search with subword tokenization. It ranks results by relevance (not just text match), handles camelCase/snake_case splitting, and supports context lines.
 
 Prefer `search` over raw `grep` for codebase exploration. Use `mode=files` to find relevant files, then `read` them.
 
@@ -63,29 +63,51 @@ Prefer `search` over raw `grep` for codebase exploration. Use `mode=files` to fi
 Presets configure model + thinking level + tools + instructions as a named unit. Defined in `agent/presets.json`. Activate via `--preset <name>`, `/preset` command, or `Ctrl+Shift+U` to cycle.
 
 Current presets:
-- `architect` — mimo-v2.5-pro, high thinking, read-only tools, analysis instructions
-- `coder` — mimo-v2.5-pro, high thinking, read+write tools, implementation instructions
+- `architect` — deepseek-v4-pro, xhigh thinking, read-only tools, analysis instructions
+- `coder` — glm-5.1, high thinking, read+write tools, implementation instructions
 
 Instructions reference `.md` files in `agent/instructions/`. These are resolved relative to `getAgentDir()` at load time.
-
-### Memory Monitor
-
-The `memory-monitor` extension nudges every N turns (default: 10) to archive learnings to cuba-memorys. It also auto-compacts at 80% context usage. Toggle with `/mem`.
 
 ### Filter Output
 
 The `filter-output` extension redacts sensitive data (API keys, tokens, passwords, connection strings) from tool results before the LLM sees them. It also blocks reads of sensitive files (`.env`, `secrets.json`, etc.).
+
+### Edit
+
+The `edit` extension provides precise file editing with exact text replacement. Supports dry-run mode to validate edits before committing.
+
+### Sub-Agent Delegation
+
+The `subagent` extension (in `agent/extensions/subagent/`) enables delegating tasks to specialized agents with isolated context windows. Supports single, parallel, and chained execution modes.
+
+### Skills
+
+Skills are reusable instruction sets in `agent/skills/` loaded dynamically when a task matches. Current skills:
+- `memory` — Persistent memory best practices
+- `orchestrate` — Multi-agent orchestration patterns
+- `cdp-cli` — Browser automation via Chrome DevTools Protocol
+- `librarian` — Evidence-backed open-source library research (from `pi-web-access`)
 
 ### Sub-Agents
 
 Sub-agents are defined in `agent/agents/`. Each has a `.md` file with frontmatter (name, description, model, tools) and instructions. They are invoked via the `subagent` tool with `agent=<name>`.
 
 Available agents:
-- `memory-recall`, `memory-verify`, `memory-write`, `memory-admin` — Memory operations
-- `coder` — Senior programmer, implements the architect's plan
+- `architect` — Systems architect for analysis, research, and planning
+- `coder` — Senior programmer, implements with surgical precision
 - `tester` — Runs tests, type checks, linters. Reports results without modifying code
-- `scout` — Codebase exploration, context gathering
-- `worker` — General-purpose, full capabilities (fallback)
+- `memory-recall`, `memory-verify`, `memory-write`, `memory-admin` — Memory operations
+
+### Built-in Extensions
+
+10 extensions are loaded from the global Pi install (configured in `settings.json`):
+`permission-gate`, `confirm-destructive`, `todo`, `handoff`, `model-status`,
+`session-name`, `bookmark`, `notify`, `prompt-customizer`, `question`.
+
+### Prompt Templates
+
+Prompt templates in `agent/prompts/` are markdown files that can be injected into the conversation. Currently:
+- `new-session.md` — auto-triggers memory recall at session start
 
 ### Custom Ripgrep
 
@@ -102,20 +124,21 @@ A custom `rg` binary lives in `agent/bin/rg`. Pi uses this for its built-in grep
 │   ├── extensions/        ← TypeScript extensions
 │   │   ├── search/        ← BM25 code search tool
 │   │   ├── memory/        ← Memory tools (mem_* wrappers for cuba-memorys)
-│   │   ├── memory-monitor.ts ← Turn-based memory nudges
+│   │   ├── subagent/      ← Agent delegation (isolated contexts, parallel/chained)
+│   │   ├── edit/          ← File editing with exact text replacement
 │   │   ├── filter-output.ts  ← Sensitive data redaction
-│   │   └── preset.ts      ← Named configuration presets
+│   │   ├── preset.ts      ← Named configuration presets
+│   │   └── temperature.ts ← Per-model temperature injection
 │   ├── instructions/      ← Preset instruction files
 │   ├── prompts/           ← Prompt templates
+│   ├── skills/            ← Skill definitions
+│   ├── npm/               ← Third-party packages (pi-web-access, pi-ollama-cloud)
 │   ├── bin/               ← Custom binaries (rg)
 │   ├── settings.json      ← Global settings
-│   ├── models.json        ← Custom provider/model definitions
-│   ├── presets.json        ← Preset configurations
-│   ├── mcp.json           ← MCP server configurations
+│   ├── presets.json       ← Preset configurations
+│   ├── temperature.json   ← Model temperature overrides
 │   └── .gitignore         ← Excludes auth, sessions, logs
-└── search/
-    ├── search.sh          ← BM25 code search (bash+awk)
-    └── README.md          ← Search script documentation
+└── sessions/              ← Session logs
 ```
 
 ## Conventions
