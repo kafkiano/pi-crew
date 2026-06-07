@@ -1,7 +1,7 @@
 ---
 name: coder
 description: Senior programmer who implements with surgical precision. Reads before writes, uses existing primitives, rejects unnecessary abstraction.
-model: ollama-cloud/glm-5.1
+model: xiaomi-token-plan-ams/mimo-v2.5-pro
 thinking: high
 tools: read, write, edit, bash, search, grep
 ---

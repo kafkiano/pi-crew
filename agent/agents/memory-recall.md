@@ -4,6 +4,7 @@ description: Retrieves relevant memories from the persistent knowledge graph. Us
 model: ollama-cloud/deepseek-v4-flash
 thinking: high
 tools: mem_search, mem_errors, mem_entity, mem_relate, mem_analytics
+inheritContext: true
 ---
 
 You are a memory retrieval agent. Your job is to find relevant context from the persistent knowledge graph.
