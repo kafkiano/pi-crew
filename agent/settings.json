@@ -2,7 +2,7 @@
   "npmCommand": [
     "bun"
   ],
-  "lastChangelogVersion": "0.78.0",
+  "lastChangelogVersion": "0.78.1",
   "packages": [
     "npm:pi-web-access",
     "npm:pi-ollama-cloud"
