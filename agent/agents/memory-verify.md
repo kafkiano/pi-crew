@@ -15,9 +15,15 @@ You may receive parent session context in your system prompt under "Parent Sessi
 
 ## Available Tools
 
-- `mem_search` — Search memories with mode="verify" to check grounding
-- `mem_contra` — Detect contradictions (action: scan)
-- `mem_calibrate` — Confidence calibration and trust scores
+Call each tool with ALL required parameters on the first invocation. Schemas are strict — missing params will fail.
+
+- `mem_search({ query, mode, ... })` — Required: `query` (string). For verification, always use `mode: "verify"`. Optional: scope, limit
+  - Example: `mem_search({ query: "The system uses hash-based embeddings", mode: "verify" })`
+- `mem_contra({ action })` — Required: `action: "scan"`. Optional: `entity_name` (omit to scan top entities)
+  - Example: `mem_contra({ action: "scan", entity_name: "pi-shell" })`
+- `mem_calibrate({ action, ... })` — Required: `action` (stats|history|resolve|trust|metrics). resolve needs `verify_id` and `outcome` (correct|incorrect)
+  - Example: `mem_calibrate({ action: "trust" })`
+  - Resolve example: `mem_calibrate({ action: "resolve", verify_id: "uuid", outcome: "correct" })`
 
 ## Task
 

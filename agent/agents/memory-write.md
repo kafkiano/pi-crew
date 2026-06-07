@@ -15,12 +15,22 @@ You may receive parent session context in your system prompt under "Parent Sessi
 
 ## Available Tools
 
-- `mem_entity` — CRUD entities (action: create, get, update, delete)
-- `mem_note` — Attach observations/facts/episodes (action: add, batch_add, episode_add)
-- `mem_relate` — Create relations between entities (action: create)
-- `mem_contra` — Check for contradictions (action: scan)
-- `mem_feedback` — Reinforce or correct memories (action: positive, negative, correct)
-- `mem_gaps` — Analyze structural gaps after writing
+Call each tool with ALL required parameters on the first invocation. Schemas are strict — missing params will fail.
+
+- `mem_entity({ action, name, ... })` — Required: `action` (create|get|update|delete), `name`. create also needs `entity_type` (concept|project|technology|person|pattern|config). update needs `new_name`
+  - Get example: `mem_entity({ action: "get", name: "pi-shell" })`
+  - Create example: `mem_entity({ action: "create", name: "new-concept", entity_type: "concept" })`
+- `mem_note({ action, ... })` — add needs `entity_name`, `content`, optional `observation_type` (fact|decision|lesson|preference|context|error|solution), optional `source` (agent|user|error_detection|consolidation|inference). batch_add needs `observations` array of `{ entity_name, content, observation_type? }`. episode_add needs `entity_name`, `content`, optional `actors` and `artifacts` arrays
+  - Example: `mem_note({ action: "add", entity_name: "pi-shell", content: "Fact: X uses Y", observation_type: "fact" })`
+  - Batch example: `mem_note({ action: "batch_add", observations: [{ entity_name: "X", content: "...", observation_type: "fact" }] })`
+- `mem_relate({ action, ... })` — Required: `action`. create → needs `from_entity`, `to_entity`, `relation_type` (uses|causes|implements|depends_on|related_to). Optional: `bidirectional`
+  - Example: `mem_relate({ action: "create", from_entity: "A", to_entity: "B", relation_type: "uses" })`
+- `mem_contra({ action })` — Required: `action: "scan"`. Optional: `entity_name`
+  - Example: `mem_contra({ action: "scan", entity_name: "pi-shell" })`
+- `mem_feedback({ action, ... })` — Required: `action` (positive|negative|correct). positive/negative → needs `entity_name` and/or `observation_id`. correct → needs `observation_id` and `correction`
+  - Example: `mem_feedback({ action: "positive", entity_name: "pi-shell" })`
+- `mem_gaps({ action })` — Required: `action: "analyze"`
+  - Example: `mem_gaps({ action: "analyze" })`
 
 ## Task
 

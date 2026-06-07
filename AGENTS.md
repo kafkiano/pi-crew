@@ -14,39 +14,43 @@ Do NOT add a local `node_modules` or `package.json` to fix editor warnings. It w
 
 Persistent memory across sessions, backed by PostgreSQL + pgvector. Two layers:
 
-1. **Memory extension** (`agent/extensions/memory/`) — spawns the cuba-memorys binary directly, registers `mem_*` tools with clean names. These are the primary interface.
-2. **MCP adapter** (`agent/mcp.json`) — lazy connection for advanced/non-core tools (analytics, maintenance, bulk ingestion). Accessed via `mcp({ tool: "cuba_*" })` proxy.
+1. **Memory extension** (`agent/extensions/memory/`) — spawns the cuba-memorys binary directly, registers 25 `mem_*` tools plus a `mem` dispatch. Individual tools are callable by name (subagents use them directly). The main agent sees a compact interface: 4 core tools + the `mem` dispatch.
+2. **Sub-agents** — `memory-recall`, `memory-verify`, `memory-write`, `memory-admin` each have specific `mem_*` tools assigned via frontmatter. They use the individual tools directly.
 
-Core tools (via extension):
+Core tools (standalone, always available):
 | Tool | Maps to | Purpose |
 |------|---------|--------|
 | `mem_search` | `cuba_faro` | Search/recall memories |
 | `mem_note` | `cuba_cronica` | Attach observations |
-| `mem_entity` | `cuba_alma` | CRUD entities |
-| `mem_relate` | `cuba_puente` | Create/traverse relations |
-| `mem_feedback` | `cuba_eco` | RLHF feedback |
 | `mem_session` | `cuba_jornada` | Session tracking |
-| `mem_decide` | `cuba_decreto` | Record decisions |
 | `mem_errors` | `cuba_expediente` | Search error history |
-| `mem_report` | `cuba_alarma` | Report errors |
-| `mem_resolve` | `cuba_remedio` | Resolve errors |
-| `mem_contra` | `cuba_contradiccion` | Detect contradictions |
-| `mem_analytics` | `cuba_vigia` | Graph analytics |
-| `mem_maintenance` | `cuba_zafra` | Decay, prune, merge, reembed |
-| `mem_forget` | `cuba_forget` | GDPR hard-delete |
-| `mem_gaps` | `cuba_reflexion` | Structural gap analysis |
-| `mem_hypothesize` | `cuba_hipotesis` | Abductive inference |
-| `mem_trigger` | `cuba_centinela` | Prospective memory triggers |
-| `mem_calibrate` | `cuba_calibrar` | Confidence calibration |
-| `mem_ingest` | `cuba_ingesta` | Bulk ingestion |
-| `mem_project` | `cuba_proyecto` | Project scoping |
-| `mem_snapshot` | `cuba_pre_compact` | Compaction survival |
-| `mem_sync` | `cuba_sync` | Git-friendly export/import |
-| `mem_audit` | `cuba_archivo` | Tamper-evident audit log |
-| `mem_buffer` | `cuba_pizarra` | Working memory buffer |
-| `mem_judge` | `cuba_juez` | LLM-judge for conflicts |
 
-Memory operations are delegated to three sub-agents: `memory-recall`, `memory-verify`, `memory-write`. They each have specific `mem_*` tools assigned via frontmatter.
+Dispatch tool (groups 21 operations — use `mem(action, params)` for everything else):
+| Action | Maps to | Purpose |
+|--------|---------|--------|
+| `entity` | `cuba_alma` | CRUD entities |
+| `relate` | `cuba_puente` | Create/traverse relations |
+| `feedback` | `cuba_eco` | RLHF feedback |
+| `decide` | `cuba_decreto` | Record decisions |
+| `report` | `cuba_alarma` | Report errors |
+| `resolve` | `cuba_remedio` | Resolve errors |
+| `contra` | `cuba_contradiccion` | Detect contradictions |
+| `analytics` | `cuba_vigia` | Graph analytics |
+| `maintenance` | `cuba_zafra` | Decay, prune, merge, reembed |
+| `forget` | `cuba_forget` | GDPR hard-delete |
+| `gaps` | `cuba_reflexion` | Structural gap analysis |
+| `hypothesize` | `cuba_hipotesis` | Abductive inference |
+| `trigger` | `cuba_centinela` | Prospective memory triggers |
+| `calibrate` | `cuba_calibrar` | Confidence calibration |
+| `ingest` | `cuba_ingesta` | Bulk ingestion |
+| `project` | `cuba_proyecto` | Project scoping |
+| `snapshot` | `cuba_pre_compact` | Compaction survival |
+| `sync` | `cuba_sync` | Git-friendly export/import |
+| `audit` | `cuba_archivo` | Tamper-evident audit log |
+| `buffer` | `cuba_pizarra` | Working memory buffer |
+| `judge` | `cuba_juez` | LLM-judge for conflicts |
+
+All 25 individual `mem_*` tools remain registered and callable by name (subagents use them via `--tools`). The main agent's prompt only shows the 4 core + `mem` dispatch unless a preset overrides.
 
 ### Search Tool
 
@@ -77,7 +81,7 @@ The `filter-output` extension redacts sensitive data (API keys, tokens, password
 Sub-agents are defined in `agent/agents/`. Each has a `.md` file with frontmatter (name, description, model, tools) and instructions. They are invoked via the `subagent` tool with `agent=<name>`.
 
 Available agents:
-- `memory-recall`, `memory-verify`, `memory-write` — Memory operations (MCP only)
+- `memory-recall`, `memory-verify`, `memory-write`, `memory-admin` — Memory operations
 - `coder` — Senior programmer, implements the architect's plan
 - `tester` — Runs tests, type checks, linters. Reports results without modifying code
 - `scout` — Codebase exploration, context gathering
@@ -120,5 +124,4 @@ A custom `rg` binary lives in `agent/bin/rg`. Pi uses this for its built-in grep
 - Extensions use `Type` from `@earendil-works/pi-ai` for parameter schemas
 - Preset instructions live in `agent/instructions/*.md` and are referenced by path in `presets.json`
 - Sub-agent definitions use YAML frontmatter + markdown body
-- Memory tools use `mem_*` prefix (registered by memory extension, not MCP adapter)
-- Advanced memory tools accessed via `mcp({ tool: "cuba_*" })` proxy
+- Memory tools use `mem_*` prefix (registered by memory extension). Use `mem(action, params)` dispatch for non-core operations.

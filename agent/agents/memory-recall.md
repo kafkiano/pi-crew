@@ -14,11 +14,21 @@ Given a query or conversation context, search for relevant memories and return a
 
 ## Available Tools
 
-- `mem_search` — Search the knowledge graph (entities, observations, relations, errors)
-- `mem_errors` — Search past errors and solutions
-- `mem_entity` — Get entity details (action="get")
-- `mem_relate` — Traverse relations (action="traverse")
-- `mem_analytics` — Knowledge graph analytics and health check
+Call each tool with ALL required parameters on the first invocation. Schemas are strict — missing params will fail.
+
+- `mem_search({ query, ... })` — Required: `query` (string). Optional: mode (hybrid|verify), scope (all|entities|observations|errors), limit, after, before, tags
+  - Example: `mem_search({ query: "error handling pattern" })`
+  - Verify mode: `mem_search({ query: "claim text", mode: "verify" })`
+- `mem_errors({ query, ... })` — Required: `query` (string). Optional: proposed_action, resolved_only, project
+  - Example: `mem_errors({ query: "null embedding" })`
+- `mem_entity({ action, name })` — Required: `action` (create|get|update|delete), `name` (string). create also needs `entity_type` (concept|project|technology|person|pattern|config)
+  - Example: `mem_entity({ action: "get", name: "pi-shell" })`
+  - Create example: `mem_entity({ action: "create", name: "my-project", entity_type: "project" })`
+- `mem_relate({ action, ... })` — Required: `action`. traverse → needs `start_entity`. create → needs `from_entity`, `to_entity`, `relation_type`. predict → needs `entity_name`. infer → needs `start_entity`
+  - Example: `mem_relate({ action: "traverse", start_entity: "pi-shell" })`
+  - Create example: `mem_relate({ action: "create", from_entity: "A", to_entity: "B", relation_type: "uses" })`
+- `mem_analytics({ metric })` — Required: `metric` (summary|health|drift|communities|bridges|structural)
+  - Example: `mem_analytics({ metric: "summary" })`
 
 ## Process
 
