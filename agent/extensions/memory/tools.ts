@@ -598,3 +598,87 @@ export function getMemoryTools(client: McpStdioClient) {
 
   return defs.map((def) => createTool(def, client));
 }
+
+// ── Dispatch tool ──────────────────────────────────────────────────
+
+const ACTION_MAP: Record<string, string> = {
+  entity: "cuba_alma",
+  relate: "cuba_puente",
+  feedback: "cuba_eco",
+  decide: "cuba_decreto",
+  report: "cuba_alarma",
+  resolve: "cuba_remedio",
+  contra: "cuba_contradiccion",
+  analytics: "cuba_vigia",
+  maintenance: "cuba_zafra",
+  forget: "cuba_forget",
+  gaps: "cuba_reflexion",
+  hypothesize: "cuba_hipotesis",
+  trigger: "cuba_centinela",
+  calibrate: "cuba_calibrar",
+  ingest: "cuba_ingesta",
+  project: "cuba_proyecto",
+  snapshot: "cuba_pre_compact",
+  sync: "cuba_sync",
+  audit: "cuba_archivo",
+  buffer: "cuba_pizarra",
+  judge: "cuba_juez",
+};
+
+export function getMemDispatchTool(client: McpStdioClient) {
+  return defineTool({
+    name: "mem",
+    label: "Memory",
+    description: [
+      "Dispatch to any memory operation. Core tools (mem_search, mem_note, mem_session, mem_errors) are standalone — use this for everything else.",
+      "",
+      "ENTITY & RELATIONS: entity (create/update/delete/get), relate (create/delete/traverse/infer/predict)",
+      "QUALITY: feedback (positive/negative/correct), contra (scan), judge (judge_pair/scan_entity)",
+      "DECISIONS & ERRORS: decide (record/query/list), report, resolve",
+      "INTROSPECTION: analytics (summary/health/drift/communities/bridges/structural), gaps (analyze), hypothesize (explain)",
+      "MAINTENANCE: maintenance (decay/prune/merge/summarize/reembed/...), forget",
+      "UTILITY: calibrate (stats/history/resolve/trust/metrics), ingest (ingest/parse), project (list/switch/stats/...), snapshot (snapshot/restore), sync (export/import/diff/status), audit (append/verify/tail), buffer (write/read/clear), trigger (create/list/delete/check)",
+      "",
+      "Pass { action, params: {...} }. The params object is forwarded directly to the underlying cuba-memorys tool.",
+    ].join("\n"),
+    promptSnippet: "Dispatch to memory tools: entity, relate, decide, report, analytics, maintenance, calibrate, ingest, and more.",
+    promptGuidelines: [
+      "Use mem for any memory operation beyond the core four (mem_search, mem_note, mem_session, mem_errors).",
+      "Use mem with action='decide' to record architectural decisions, action='entity' for entity CRUD, action='maintenance' for graph maintenance.",
+      "The params object maps to the underlying tool's arguments. See the action list in the description for what each supports.",
+    ],
+    parameters: Type.Object({
+      action: Type.String({
+        description:
+          "Memory operation: entity, relate, feedback, decide, report, resolve, contra, analytics, maintenance, forget, gaps, hypothesize, trigger, calibrate, ingest, project, snapshot, sync, audit, buffer, judge",
+      }),
+      params: Type.Optional(
+        Type.Object({}, { description: "Action-specific parameters forwarded to the underlying tool" }),
+      ),
+    }),
+
+    async execute(_toolCallId, params, _signal, _onUpdate, _ctx) {
+      const mcpName = ACTION_MAP[params.action];
+      if (!mcpName) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Unknown mem action: "${params.action}". Available: ${Object.keys(ACTION_MAP).join(", ")}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+      try {
+        return await client.callTool(mcpName, (params.params || {}) as Record<string, unknown>);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        return {
+          content: [{ type: "text", text: `mem dispatch error (${params.action}): ${message}` }],
+          isError: true,
+        };
+      }
+    },
+  });
+}
