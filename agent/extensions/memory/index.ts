@@ -9,7 +9,7 @@
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { McpStdioClient } from "./mcp-client.js";
-import { getMemoryTools } from "./tools.js";
+import { getMemoryTools, getMemDispatchTool } from "./tools.js";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -31,11 +31,36 @@ export default function (pi: ExtensionAPI) {
     DATABASE_URL: dbUrl,
   });
 
-  // Register all memory tools
+  // Register all 25 individual memory tools
   const tools = getMemoryTools(client);
   for (const tool of tools) {
     pi.registerTool(tool);
   }
+
+  // Register the mem dispatch tool (compact interface for non-core operations)
+  pi.registerTool(getMemDispatchTool(client));
+
+  // Auto-fold: replace 21 non-core mem_* tools with the mem dispatch in the prompt.
+  // Only when no explicit tool filtering is already active (presets, --tools flag).
+  // Subagents spawn with their own --tools and are unaffected.
+  pi.on("session_start", async () => {
+    const active = pi.getActiveTools();
+    const allNames = pi.getAllTools().map((t) => t.name);
+
+    // If tools have already been filtered (preset active, --tools used), don't interfere
+    const sortedActive = [...active].sort().join(",");
+    const sortedAll = [...allNames].sort().join(",");
+    if (sortedActive !== sortedAll) return;
+
+    const core = ["mem_session", "mem_search", "mem_note", "mem_errors"];
+    const toFold = active.filter((t) => t.startsWith("mem_") && !core.includes(t));
+    if (toFold.length === 0) return; // Already folded or no memory tools
+
+    // Only fold if the dispatch is registered
+    if (!allNames.includes("mem")) return;
+
+    pi.setActiveTools([...active.filter((t) => !toFold.includes(t)), "mem"]);
+  });
 
   // Show status indicator on session start
   pi.on("session_start", async (_event, ctx) => {
