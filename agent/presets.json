@@ -7,7 +7,7 @@
   },
   "coder": {
     "provider": "ollama-cloud",
-    "model": "glm-5.1",
+    "model": "kimi-k2.7-code",
     "thinkingLevel": "high",
     "instructions": "instructions/coder-mode.md"
   }
