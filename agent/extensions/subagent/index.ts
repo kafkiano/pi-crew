@@ -437,12 +437,44 @@ const AgentScopeSchema = StringEnum(["user", "project", "both"] as const, {
 	default: "user",
 });
 
+const SubagentMode = StringEnum(["single", "parallel", "chain"] as const, {
+	description:
+		'Execution mode. If omitted, auto-detected from which parameters you provide. ' +
+		'Explicit mode is recommended for clarity — then only provide the corresponding parameters.',
+});
+
 const SubagentParams = Type.Object({
 	action: Type.Optional(SubagentAction),
-	agent: Type.Optional(Type.String({ description: "Name of the agent to invoke (for single mode)" })),
-	task: Type.Optional(Type.String({ description: "Task to delegate (for single mode)" })),
-	tasks: Type.Optional(Type.Array(TaskItem, { description: "Array of {agent, task} for parallel execution" })),
-	chain: Type.Optional(Type.Array(ChainItem, { description: "Array of {agent, task} for sequential execution" })),
+	mode: Type.Optional(SubagentMode),
+	agent: Type.Optional(
+		Type.String({
+			description:
+				"Name of the agent to invoke (single mode). " +
+				"Mutually exclusive with tasks and chain — provide exactly one mode.",
+		}),
+	),
+	task: Type.Optional(
+		Type.String({
+			description:
+				"Task to delegate (single mode). " +
+				"Mutually exclusive with tasks and chain — provide exactly one mode.",
+		}),
+	),
+	tasks: Type.Optional(
+		Type.Array(TaskItem, {
+			description:
+				"Array of {agent, task} for parallel execution. " +
+				"Mutually exclusive with agent+task and chain — provide exactly one mode.",
+		}),
+	),
+	chain: Type.Optional(
+		Type.Array(ChainItem, {
+			description:
+				"Array of {agent, task} for sequential execution. " +
+				"Use {previous} placeholder to reference prior step output. " +
+				"Mutually exclusive with agent+task and tasks — provide exactly one mode.",
+		}),
+	),
 	agentScope: Type.Optional(AgentScopeSchema),
 	confirmProjectAgents: Type.Optional(
 		Type.Boolean({ description: "Prompt before running project-local agents. Default: true.", default: true }),
@@ -547,10 +579,19 @@ export default function (pi: ExtensionAPI) {
 					.map((e: any) => e.message);
 			};
 
-			const hasChain = (params.chain?.length ?? 0) > 0;
-			const hasTasks = (params.tasks?.length ?? 0) > 0;
-			const hasSingle = Boolean(params.agent && params.task);
-			const modeCount = Number(hasChain) + Number(hasTasks) + Number(hasSingle);
+			// Resolve execution mode: explicit 'mode' param takes priority, else auto-detect
+			let resolvedMode: "single" | "parallel" | "chain" | null = params.mode ?? null;
+			if (!resolvedMode) {
+				const hasChain = (params.chain?.length ?? 0) > 0;
+				const hasTasks = (params.tasks?.length ?? 0) > 0;
+				const hasSingle = Boolean(params.agent && params.task);
+				const modeCount = Number(hasChain) + Number(hasTasks) + Number(hasSingle);
+				if (modeCount === 1) {
+					if (hasSingle) resolvedMode = "single";
+					else if (hasTasks) resolvedMode = "parallel";
+					else resolvedMode = "chain";
+				}
+			}
 
 			const makeDetails =
 				(mode: "single" | "parallel" | "chain") =>
@@ -561,15 +602,36 @@ export default function (pi: ExtensionAPI) {
 					results,
 				});
 
-			if (modeCount !== 1) {
+			if (!resolvedMode) {
 				const available = agents.map((a) => `${a.name} (${a.source})`).join(", ") || "none";
+				const hasChain = (params.chain?.length ?? 0) > 0;
+				const hasTasks = (params.tasks?.length ?? 0) > 0;
+				const hasSingle = Boolean(params.agent && params.task);
+				const modeCount = Number(hasChain) + Number(hasTasks) + Number(hasSingle);
+
+				let guidance: string;
+				if (modeCount === 0) {
+					guidance =
+						`No execution mode specified. You must provide exactly ONE of these:\n` +
+						`- Single mode: { "agent": "<name>", "task": "<task>" }\n` +
+						`- Parallel mode: { "tasks": [{ "agent": "<name>", "task": "<task>" }, ...] }\n` +
+						`- Chain mode: { "chain": [{ "agent": "<name>", "task": "<task>" }, ...] }\n` +
+						`Or set "mode" to "single", "parallel", or "chain" explicitly.`;
+				} else {
+					const provided: string[] = [];
+					if (hasSingle) provided.push("agent+task (single)");
+					if (hasTasks) provided.push("tasks (parallel)");
+					if (hasChain) provided.push("chain (chain)");
+					guidance =
+						`Multiple execution modes specified: ${provided.join(", ")}. ` +
+						`Provide exactly ONE of:\n` +
+						`- Single mode: { "agent": "<name>", "task": "<task>" }\n` +
+						`- Parallel mode: { "tasks": [{ "agent": "<name>", "task": "<task>" }, ...] }\n` +
+						`- Chain mode: { "chain": [{ "agent": "<name>", "task": "<task>" }, ...] }`;
+				}
+
 				return {
-					content: [
-						{
-							type: "text",
-							text: `Invalid parameters. Provide exactly one mode.\nAvailable agents: ${available}`,
-						},
-					],
+					content: [{ type: "text", text: `Invalid parameters. ${guidance}\n\nAvailable agents: ${available}` }],
 					details: makeDetails("single")([]),
 				};
 			}
@@ -594,7 +656,7 @@ export default function (pi: ExtensionAPI) {
 					if (!ok)
 						return {
 							content: [{ type: "text", text: "Canceled: project-local agents not approved." }],
-							details: makeDetails(hasChain ? "chain" : hasTasks ? "parallel" : "single")([]),
+							details: makeDetails(resolvedMode)([]),
 						};
 				}
 			}
@@ -771,7 +833,10 @@ export default function (pi: ExtensionAPI) {
 
 			const available = agents.map((a) => `${a.name} (${a.source})`).join(", ") || "none";
 			return {
-				content: [{ type: "text", text: `Invalid parameters. Available agents: ${available}` }],
+				content: [{
+					type: "text",
+					text: `Invalid parameters. Mode is "${resolvedMode}" but required parameters are missing.\nAvailable agents: ${available}`,
+				}],
 				details: makeDetails("single")([]),
 			};
 		},
