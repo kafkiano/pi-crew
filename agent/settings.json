@@ -2,7 +2,7 @@
   "npmCommand": [
     "bun"
   ],
-  "lastChangelogVersion": "0.79.4",
+  "lastChangelogVersion": "0.79.6",
   "packages": [
     "npm:pi-web-access",
     "npm:pi-ollama-cloud"
@@ -20,7 +20,7 @@
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/question.ts"
   ],
   "defaultProvider": "ollama-cloud",
-  "defaultModel": "deepseek-v4-pro",
+  "defaultModel": "kimi-k2.7-code",
   "retry": {
     "enabled": true
   },
