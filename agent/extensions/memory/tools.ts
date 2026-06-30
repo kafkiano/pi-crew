@@ -602,6 +602,12 @@ export function getMemoryTools(client: McpStdioClient) {
 // ── Dispatch tool ──────────────────────────────────────────────────
 
 const ACTION_MAP: Record<string, string> = {
+  // Core operations (also available as standalone mem_* tools for subagents)
+  search: "cuba_faro",
+  note: "cuba_cronica",
+  session: "cuba_jornada",
+  errors: "cuba_expediente",
+  // Everything else
   entity: "cuba_alma",
   relate: "cuba_puente",
   feedback: "cuba_eco",
@@ -630,27 +636,29 @@ export function getMemDispatchTool(client: McpStdioClient) {
     name: "mem",
     label: "Memory",
     description: [
-      "Dispatch to any memory operation. Core tools (mem_search, mem_note, mem_session, mem_errors) are standalone — use this for everything else.",
+      "Single entry point for all persistent memory operations. In the main agent this is the only memory tool visible; specialized subagents get the individual mem_* tools they declare.",
       "",
-      "ENTITY & RELATIONS: entity (create/update/delete/get), relate (create/delete/traverse/infer/predict)",
-      "QUALITY: feedback (positive/negative/correct), contra (scan), judge (judge_pair/scan_entity)",
-      "DECISIONS & ERRORS: decide (record/query/list), report, resolve",
-      "INTROSPECTION: analytics (summary/health/drift/communities/bridges/structural), gaps (analyze), hypothesize (explain)",
-      "MAINTENANCE: maintenance (decay/prune/merge/summarize/reembed/...), forget",
-      "UTILITY: calibrate (stats/history/resolve/trust/metrics), ingest (ingest/parse), project (list/switch/stats/...), snapshot (snapshot/restore), sync (export/import/diff/status), audit (append/verify/tail), buffer (write/read/clear), trigger (create/list/delete/check)",
+      "Pass { action, params: {...} }. The action selects the underlying cuba-memorys operation; params are forwarded verbatim.",
       "",
-      "Pass { action, params: {...} }. The params object is forwarded directly to the underlying cuba-memorys tool.",
+      "CORE: search (cuba_faro), note (cuba_cronica), session (cuba_jornada), errors (cuba_expediente)",
+      "ENTITY & RELATIONS: entity, relate",
+      "DECISIONS & ERRORS: decide, report, resolve",
+      "QUALITY: feedback, contra, judge",
+      "INTROSPECTION: analytics, gaps, hypothesize",
+      "MAINTENANCE: maintenance, forget",
+      "UTILITY: calibrate, ingest, project, snapshot, sync, audit, buffer, trigger",
     ].join("\n"),
-    promptSnippet: "Dispatch to memory tools: entity, relate, decide, report, analytics, maintenance, calibrate, ingest, and more.",
+    promptSnippet: "Single memory dispatch. Use for every memory operation: search, note, session, errors, entity, relate, decide, report, analytics, maintenance, etc.",
     promptGuidelines: [
-      "Use mem for any memory operation beyond the core four (mem_search, mem_note, mem_session, mem_errors).",
+      "Use mem as the one memory interface in the main agent.",
+      "Call mem with action='search' for memory search, action='note' to write observations, action='session' for session tracking, action='errors' for error history.",
       "Use mem with action='decide' to record architectural decisions, action='entity' for entity CRUD, action='maintenance' for graph maintenance.",
       "The params object maps to the underlying tool's arguments. See the action list in the description for what each supports.",
     ],
     parameters: Type.Object({
       action: Type.String({
         description:
-          "Memory operation: entity, relate, feedback, decide, report, resolve, contra, analytics, maintenance, forget, gaps, hypothesize, trigger, calibrate, ingest, project, snapshot, sync, audit, buffer, judge",
+          "Memory operation: search, note, session, errors, entity, relate, feedback, decide, report, resolve, contra, analytics, maintenance, forget, gaps, hypothesize, trigger, calibrate, ingest, project, snapshot, sync, audit, buffer, judge",
       }),
       params: Type.Optional(
         Type.Object({}, { description: "Action-specific parameters forwarded to the underlying tool" }),

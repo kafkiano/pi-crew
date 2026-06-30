@@ -37,12 +37,13 @@ export default function (pi: ExtensionAPI) {
     pi.registerTool(tool);
   }
 
-  // Register the mem dispatch tool (compact interface for non-core operations)
+  // Register the single `mem` dispatch tool — the only memory interface visible to the main agent.
   pi.registerTool(getMemDispatchTool(client));
 
-  // Auto-fold: replace 21 non-core mem_* tools with the mem dispatch in the prompt.
-  // Only when no explicit tool filtering is already active (presets, --tools flag).
-  // Subagents spawn with their own --tools and are unaffected.
+  // Auto-fold: collapse every individual mem_* tool into the single `mem` dispatch.
+  // The main agent sees only `mem` as the memory entry point; specialized subagents
+  // continue to use the individual tools they declare in their frontmatter --tools.
+  // Only runs when no explicit tool filtering is active (presets, --tools flag).
   pi.on("session_start", async () => {
     const active = pi.getActiveTools();
     const allNames = pi.getAllTools().map((t) => t.name);
@@ -52,9 +53,8 @@ export default function (pi: ExtensionAPI) {
     const sortedAll = [...allNames].sort().join(",");
     if (sortedActive !== sortedAll) return;
 
-    const core = ["mem_session", "mem_search", "mem_note", "mem_errors"];
-    const toFold = active.filter((t) => t.startsWith("mem_") && !core.includes(t));
-    if (toFold.length === 0) return; // Already folded or no memory tools
+    const toFold = active.filter((t) => t.startsWith("mem_"));
+    if (toFold.length === 0) return; // No memory tools active
 
     // Only fold if the dispatch is registered
     if (!allNames.includes("mem")) return;

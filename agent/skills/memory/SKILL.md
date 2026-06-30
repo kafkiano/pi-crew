@@ -29,19 +29,19 @@ NOT for: routine file reads, command outputs, transient debugging state.
 
 ## When to READ
 
-- **Before answering** factual questions about past work -> `mem_search`
-- **Before starting** a task that might have prior context -> `mem_search`
-- **When uncertain** -> `mem_search` with `mode: "verify"`
+- **Before answering** factual questions about past work -> `mem({ action: "search", params: { query: "..." } })`
+- **Before starting** a task that might have prior context -> `mem({ action: "search", params: { query: "..." } })`
+- **When uncertain** -> `mem({ action: "search", params: { query: "...", mode: "verify" } })`
 
 ## When to FEEDBACK
 
-- User corrects you -> `mem_feedback` (negative or correct)
-- Something worked well -> `mem_feedback` (positive)
+- User corrects you -> `mem({ action: "feedback", params: { action: "negative" or "correct", ... } })`
+- Something worked well -> `mem({ action: "feedback", params: { action: "positive", ... } })`
 - Important: this strengthens or weakens memories over time (Hebbian learning)
 
 ## Session Tracking
 
-Start sessions with `mem_session` to track what you're working on. End with outcomes. This creates a timeline of work.
+Start sessions with `mem({ action: "session", params: { action: "start", ... } })` to track what you're working on. End with outcomes. This creates a timeline of work.
 
 ## The Anti-Pattern: Reminder of a Reminder
 
@@ -85,52 +85,55 @@ Learned something   -> subagent(agent="memory-write", task="Consolidate: [what w
 
 ```
 Task starts -> subagent(memory-recall) for context
-            -> mem_session start (track session)
+            -> mem({ action: "session", params: { action: "start", name: "...", goals: [...] }})
 
 Working...  -> Learn something? -> subagent(memory-write, inheritContext=true) to persist
-            -> Hit an error?    -> mem_report (and check mem_errors)
-            -> Make a decision? -> mem_decide
+            -> Hit an error?    -> mem({ action: "report", params: {...} }) (and mem({ action: "errors", params: {...} }))
+            -> Make a decision? -> mem({ action: "decide", params: { action: "record", ... } })
             -> Uncertain?       -> subagent(memory-verify, inheritContext=true) to ground
             -> Memory nudge?    -> Every 10 turns, archive what you've learned
 
-Task ends   -> mem_session end (summarize outcomes)
-            -> mem_feedback (feedback on what worked/didn't)
+Task ends   -> mem({ action: "session", params: { action: "end", summary: "...", outcome: "success" }})
+            -> mem({ action: "feedback", params: { action: "positive" or "negative", ... } })
 ```
 
 ## Tools Quick Reference
 
-| Tool | Purpose | When |
-|------|---------|------|
-| `mem_entity` | Create/manage entities | New concept, tech, person, pattern |
-| `mem_note` | Add observations | Facts, lessons, preferences |
-| `mem_relate` | Create relations | Connect entities (uses, causes, etc.) |
-| `mem_search` | Search memory | Before answering, grounding |
-| `mem_feedback` | Feedback | Correct, reinforce, weaken |
-| `mem_report` | Report errors | When something breaks |
-| `mem_resolve` | Resolve errors | When you fix something |
-| `mem_errors` | Search errors | Before trying similar approaches |
-| `mem_session` | Session tracking | Start/end of work sessions |
-| `mem_decide` | Record decisions | Architecture/design choices |
-| `mem_contra` | Check contradictions | After writing new observations |
+In the main agent, **all** memory operations go through the single `mem` dispatch:
 
-### Advanced Tools
+```
+mem({ action: "ACTION", params: { ... } })
+```
 
-| Tool | Purpose |
-|------|---------|
-| `mem_analytics` | Knowledge graph analytics and health check |
-| `mem_gaps` | Gap analysis — find underconnected knowledge |
-| `mem_maintenance` | Memory maintenance — decay, pruning, merge, reembed |
-| `mem_hypothesize` | Abductive inference from observations |
-| `mem_trigger` | Set prospective memory triggers |
-| `mem_ingest` | Bulk knowledge ingestion |
-| `mem_forget` | GDPR erasure of entities |
-| `mem_buffer` | Working memory buffer |
-| `mem_calibrate` | Confidence calibration and trust scores |
-| `mem_project` | Project scoping and isolation |
-| `mem_snapshot` | Compaction survival (snapshot/restore) |
-| `mem_sync` | Git-friendly export/import |
-| `mem_audit` | Tamper-evident audit log |
-| `mem_judge` | LLM-judge for ambiguous conflicts |
+| Action | Purpose | Common params |
+|--------|---------|---------------|
+| `search` | Search memory | `query`, `mode` (hybrid\|verify), `scope`, `limit` |
+| `note` | Add observations | `action` (add\|batch_add\|episode_add), `entity_name`, `content`, `observation_type` |
+| `session` | Session tracking | `action` (start\|end\|list\|current), `name`, `goals`, `summary`, `outcome`, `project` |
+| `errors` | Search error history | `query`, `proposed_action`, `resolved_only` |
+| `entity` | Create/manage entities | `action` (create\|get\|update\|delete), `name`, `entity_type` |
+| `relate` | Create relations | `action` (create\|delete\|traverse\|infer\|predict), `from_entity`, `to_entity`, `relation_type` |
+| `feedback` | Feedback | `action` (positive\|negative\|correct), `entity_name`, `observation_id` |
+| `report` | Report errors | `error_type`, `error_message`, `context`, `project` |
+| `resolve` | Resolve errors | `error_id`, `solution` |
+| `decide` | Record decisions | `action` (record\|query\|list), `title`, `context`, `chosen`, `rationale`, `alternatives` |
+| `contra` | Check contradictions | `action: "scan"`, `entity_name` |
+| `analytics` | Graph analytics | `metric` (summary\|health\|drift\|communities\|bridges\|structural) |
+| `gaps` | Gap analysis | `action: "analyze"` |
+| `maintenance` | Maintenance | `action` (decay\|prune\|merge\|summarize\|stats\|pagerank\|find_duplicates\|export\|reembed) |
+| `hypothesize` | Abductive inference | `action: "explain"`, `effect` |
+| `trigger` | Prospective triggers | `action` (create\|list\|delete\|check), `message`, `condition_type` |
+| `calibrate` | Confidence calibration | `action` (stats\|history\|resolve\|trust\|metrics) |
+| `ingest` | Bulk ingestion | `action` (ingest\|parse), `items` or `text` |
+| `project` | Project scoping | `action` (list\|current\|switch\|stats\|rename\|merge), `name`, `to` |
+| `snapshot` | Snapshot/restore | `action` (snapshot\|restore) |
+| `sync` | Export/import | `action` (export\|import\|diff\|status), `dir`, `scope` |
+| `audit` | Audit log | `action` (append\|verify\|tail), `event_action`, `payload` |
+| `buffer` | Working memory | `action` (write\|read\|clear), `content`, `tag`, `ttl_seconds` |
+| `judge` | LLM-judge conflicts | `action` (judge_pair\|scan_entity), `observation_a`, `observation_b` |
+| `forget` | GDPR erasure | `entity_name`, `confirm: true` |
+
+Subagents (`memory-recall`, `memory-verify`, `memory-write`, `memory-admin`) still use the individual `mem_*` tools declared in their frontmatter.
 
 ## Entity Types
 
