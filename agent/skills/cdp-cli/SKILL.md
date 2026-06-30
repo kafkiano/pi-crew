@@ -24,7 +24,7 @@ description: Your agent browser cli. Interact with websites or localhost through
 
 ## Instructions
 
-Use `cdp-cli` to automate html front-end inspection, interaction, debugging or web scraping via Chrome DevTools Protocol. Output is NDJSON (newline-delimited JSON), ideal for parsing with `jq`.
+Use `cdp-cli` to automate html front-end inspection, interaction, debugging or web scraping via Chrome DevTools Protocol. **Output is NDJSON** — one JSON object per line. Parse it with `jq -R 'fromjson? ...'`, not with the usual single-document `jq '.field'` pattern.
 
 ### Starting Chromium
 
@@ -43,16 +43,16 @@ Use `cdp-cli` to automate html front-end inspection, interaction, debugging or w
 
 ### Pair Browsing — Connect to User's Visible Session
 
-When the user has Chromium running visibly, connect to their session:
+When the user has Chromium running visibly, connect to their session. The default CDP URL is `http://localhost:9223`, so you only need `--cdp-url` when the browser is on a non-default port, IPv6, or there is a port conflict.
 
 ```bash
-# Default connects to http://localhost:9223 (IPv4)
-# If both headless (IPv4) and visible (IPv6) are running, specify:
-cdp-cli --cdp-url 'http://[::1]:9223' tabs
+# Default: localhost:9223 — no --cdp-url needed
+cdp-cli tabs
+cdp-cli snapshot "PAGE_TITLE" --format text
+cdp-cli eval "PAGE_TITLE" "document.title"
 
-# Use --cdp-url for all subsequent commands:
-cdp-cli --cdp-url 'http://[::1]:9223' snapshot "PAGE_TITLE" --format text
-cdp-cli --cdp-url 'http://[::1]:9223' eval "PAGE_TITLE" "document.title"
+# Only use --cdp-url when required, e.g. an IPv6-visible instance:
+cdp-cli --cdp-url 'http://[::1]:9223' tabs
 ```
 
 **Port conflict note**: Two Chromium instances can share port 9223 if one binds IPv4 (127.0.0.1) and the other IPv6 ([::1]). Check with `ss -tlnp | grep 9223` to see who owns which.
@@ -60,14 +60,20 @@ cdp-cli --cdp-url 'http://[::1]:9223' eval "PAGE_TITLE" "document.title"
 ### Quick Start
 
 ```bash
-# List open tabs
-cdp-cli tabs | jq -r '.title'
+# List open tabs (output is NDJSON: one JSON object per line)
+cdp-cli tabs | jq -R 'fromjson? | "\(.id) | \(.type) | \(.title) | \(.url)"'
+
+# Or collect all NDJSON lines into one array
+cdp-cli tabs | jq -R '[fromjson?] | .[] | .title'
 
 # Inspect page content (prefer --format text over dom — dom can produce empty output)
 cdp-cli snapshot "PAGE_TITLE" --format text
 
+# Take a screenshot — save it inside the current workspace so Pi can read it back
+cdp-cli screenshot "Pi Coding Agent" ./.scratch/pi-dev-screenshot.png
+
 # Extract structured data with JavaScript (MUST use IIFE to avoid context persistence errors)
-cdp-cli eval "PAGE_TITLE" "(function() { return document.title; })()" | jq -r '.value'
+cdp-cli eval "PAGE_TITLE" "(function() { return document.title; })()" | jq -R 'fromjson? | .value'
 ```
 
 ### Command Reference
@@ -85,6 +91,8 @@ cdp-cli eval "PAGE_TITLE" "(function() { return document.title; })()" | jq -r '.
 |            | `cdp-cli fill <page> <text> <selector>`            | Fill input field          |
 |            | `cdp-cli key <page> <key>`                         | Press keyboard key        |
 | Capture    | `cdp-cli screenshot <page> <output>`               | Take screenshot           |
+
+**Screenshot workspace safety.** The Pi `read` tool can only display files inside the current workspace. Save screenshots to a path like `./.scratch/<name>.png` (create the directory first) rather than `/tmp/...`. If the first capture times out with `Command timeout: Page.captureScreenshot`, simply retry once; CDP screenshot capture can be transiently slow.
 | Network    | `cdp-cli network <page> [--duration 5]`            | Monitor network requests  |
 
 ### Eval Gotchas
@@ -148,7 +156,7 @@ cdp-cli eval "PAGE" "(async function() {
 
 # 2. Retrieve in chunks (500K chars each)
 for i in $(seq 0 $((CHUNKS-1))); do
-  cdp-cli eval "PAGE" "window.__b64.substring($((i*500000)), $(((i+1)*500000)))" | jq -r '.value' > chunk_$i.b64
+  cdp-cli eval "PAGE" "window.__b64.substring($((i*500000)), $(((i+1)*500000)))" | jq -R 'fromjson? | .value' > chunk_$i.b64
 done
 
 # 3. Reassemble and decode
@@ -169,5 +177,7 @@ cat chunk_*.b64 | tr -d '\n' | base64 -d > output.file
 - **AppArmor DENIED sys_admin**: Chromium sandbox blocked. Either load an AppArmor profile for ungoogled-chromium or add `--no-sandbox`.
 - **DOM snapshot empty**: Use `--format text` instead. DOM format can produce empty output on complex pages.
 - **Click "Could not compute box model"**: Element not in viewport (common with modals in headless). Navigate to the element's href directly.
+- **Screenshot "Command timeout: Page.captureScreenshot"**: CDP screenshot capture can be slow on first use. Retry the same command once; it usually succeeds.
+- **Screenshot "Image unavailable" in Pi UI**: You saved the file outside the current workspace. Write it to a workspace-relative path like `./.scratch/<name>.png`.
 - **Eval "Identifier already declared"**: Use IIFE to isolate scope between eval calls.
 - **Two Chromiums on port 9223**: One on IPv4, one on IPv6. Use `--cdp-url 'http://[::1]:9223'` for the IPv6 instance.
