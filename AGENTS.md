@@ -14,20 +14,17 @@ Do NOT add a local `node_modules` or `package.json` to fix editor warnings. It w
 
 Persistent memory across sessions, backed by PostgreSQL + pgvector. Two layers:
 
-1. **Memory extension** (`agent/extensions/memory/`) — spawns the cuba-memorys binary directly, registers 25 `mem_*` tools plus a `mem` dispatch. Individual tools are callable by name (subagents use them directly). The main agent sees a compact interface: 4 core tools + the `mem` dispatch.
+1. **Memory extension** (`agent/extensions/memory/`) — spawns the cuba-memorys binary directly and registers 25 `mem_*` tools plus a single `mem` dispatch. The main agent sees only the `mem` dispatch; individual `mem_*` tools are still registered so subagents can request them explicitly.
 2. **Sub-agents** — `memory-recall`, `memory-verify`, `memory-write`, `memory-admin` each have specific `mem_*` tools assigned via frontmatter. They use the individual tools directly.
 
-Core tools (standalone, always available):
-| Tool | Maps to | Purpose |
-|------|---------|--------|
-| `mem_search` | `cuba_faro` | Search/recall memories |
-| `mem_note` | `cuba_cronica` | Attach observations |
-| `mem_session` | `cuba_jornada` | Session tracking |
-| `mem_errors` | `cuba_expediente` | Search error history |
+In the main agent, all memory work goes through the `mem` dispatch:
 
-Dispatch tool (groups 21 operations — use `mem(action, params)` for everything else):
 | Action | Maps to | Purpose |
-|--------|---------|--------|
+|--------|---------|---------|
+| `search` | `cuba_faro` | Search/recall memories |
+| `note` | `cuba_cronica` | Attach observations |
+| `session` | `cuba_jornada` | Session tracking |
+| `errors` | `cuba_expediente` | Search error history |
 | `entity` | `cuba_alma` | CRUD entities |
 | `relate` | `cuba_puente` | Create/traverse relations |
 | `feedback` | `cuba_eco` | RLHF feedback |
@@ -50,7 +47,9 @@ Dispatch tool (groups 21 operations — use `mem(action, params)` for everything
 | `buffer` | `cuba_pizarra` | Working memory buffer |
 | `judge` | `cuba_juez` | LLM-judge for conflicts |
 
-All 25 individual `mem_*` tools remain registered and callable by name (subagents use them via `--tools`). The main agent's prompt only shows the 4 core + `mem` dispatch unless a preset overrides.
+Call pattern: `mem({ action: "search", params: { query: "..." } })`. The `params` object is forwarded verbatim to the underlying cuba-memorys operation.
+
+All 25 individual `mem_*` tools remain registered and callable by name (subagents use them via `--tools`). The main agent's prompt only shows the `mem` dispatch unless a preset overrides.
 
 ### Search Tool
 
@@ -100,8 +99,8 @@ Available agents:
 
 ### Built-in Extensions
 
-10 extensions are loaded from the global Pi install (configured in `settings.json`):
-`permission-gate`, `confirm-destructive`, `todo`, `handoff`, `model-status`,
+9 extensions are loaded from the global Pi install (configured in `settings.json`):
+`permission-gate`, `confirm-destructive`, `handoff`, `model-status`,
 `session-name`, `bookmark`, `notify`, `prompt-customizer`, `question`.
 
 ### Prompt Templates
@@ -147,4 +146,4 @@ A custom `rg` binary lives in `agent/bin/rg`. Pi uses this for its built-in grep
 - Extensions use `Type` from `@earendil-works/pi-ai` for parameter schemas
 - Preset instructions live in `agent/instructions/*.md` and are referenced by path in `presets.json`
 - Sub-agent definitions use YAML frontmatter + markdown body
-- Memory tools use `mem_*` prefix (registered by memory extension). Use `mem(action, params)` dispatch for non-core operations.
+- Memory tools use `mem_*` prefix (registered by memory extension). In the main agent, use the single `mem(action, params)` dispatch for every memory operation.

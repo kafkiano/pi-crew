@@ -8,7 +8,7 @@ A customized [Pi coding agent](https://pi.dev) configuration with persistent mem
 
 Cross-session memory via a neuroscience-inspired MCP server backed by PostgreSQL + pgvector. Stores facts, decisions, lessons, and errors as a knowledge graph with Hebbian learning and automatic decay.
 
-25 `mem_*` tools are registered by the `memory/` extension. The main agent sees a compact interface: 4 core tools (`mem_search`, `mem_note`, `mem_session`, `mem_errors`) plus a `mem` dispatch for the remaining 21 operations.
+25 `mem_*` tools are registered by the `memory/` extension. The main agent sees a single `mem` dispatch that covers all 25 operations; individual `mem_*` tools remain available for subagents that declare them in their frontmatter.
 
 Memory operations are delegated to four specialized sub-agents:
 - **memory-recall** — Retrieves relevant context before answering
@@ -75,8 +75,8 @@ Specialized agents with isolated context windows, invoked via the `subagent` too
 | `preset.ts` | Named configuration presets |
 | `temperature.ts` | Per-model temperature injection |
 
-10 additional extensions are loaded from the global Pi install (`settings.json`):
-`permission-gate`, `confirm-destructive`, `todo`, `handoff`, `model-status`,
+9 additional extensions are loaded from the global Pi install (`settings.json`):
+`permission-gate`, `confirm-destructive`, `handoff`, `model-status`,
 `session-name`, `bookmark`, `notify`, `prompt-customizer`, `question`.
 
 ## Skills
