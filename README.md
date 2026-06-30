@@ -36,8 +36,8 @@ Switch between model + thinking level + tool set + instructions as a unit.
 
 | Preset | Model | Thinking | Tools | Purpose |
 |--------|-------|----------|-------|---------|
-| `architect` | deepseek-v4-pro | xhigh | read-only | Analysis, planning, code review |
-| `coder` | glm-5.1 | high | read+write | Implementation, debugging |
+| `architect` | glm-5.2 | xhigh | read-only | Analysis, planning, code review |
+| `coder` | kimi-k2.7-code | high | read+write | Implementation, debugging |
 
 Activate via `--preset <name>`, `/preset` command, or `Ctrl+Shift+U` to cycle.
 
@@ -88,7 +88,6 @@ Reusable instruction sets loaded dynamically for specific tasks:
 | `memory` | Persistent memory best practices |
 | `orchestrate` | Multi-agent orchestration (architect → coder → tester) |
 | `cdp-cli` | Browser automation via Chrome DevTools Protocol |
-| `librarian` | Evidence-backed open-source library research with GitHub citations |
 
 ## Packages
 
@@ -127,6 +126,7 @@ Third-party packages installed in `agent/npm/`:
 │   ├── skills/            # Skill definitions
 │   ├── npm/               # Third-party packages
 │   ├── bin/               # Custom binaries (ripgrep)
+│   ├── ollama-cloud.json  # Deactivate ollama web search tools
 │   ├── settings.json      # Global settings
 │   ├── presets.json       # Preset configurations
 │   └── temperature.json   # Model temperature overrides
