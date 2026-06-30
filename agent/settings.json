@@ -2,7 +2,7 @@
   "npmCommand": [
     "bun"
   ],
-  "lastChangelogVersion": "0.79.6",
+  "lastChangelogVersion": "0.80.3",
   "packages": [
     "npm:pi-web-access",
     "npm:pi-ollama-cloud"
@@ -24,6 +24,6 @@
   "retry": {
     "enabled": true
   },
-  "defaultThinkingLevel": "xhigh",
+  "defaultThinkingLevel": "high",
   "theme": "dark"
 }
