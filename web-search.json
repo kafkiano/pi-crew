@@ -1,0 +1,5 @@
+{
+  "provider": "exa",
+  "workflow": "none",
+  "summaryModel": "ollama-cloud/deepseek-v4-flash"
+}
