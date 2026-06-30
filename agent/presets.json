@@ -1,8 +1,8 @@
 {
   "architect": {
     "provider": "ollama-cloud",
-    "model": "deepseek-v4-pro",
-    "thinkingLevel": "xhigh",
+    "model": "glm-5.2",
+    "thinkingLevel": "high",
     "instructions": "instructions/architect-mode.md"
   },
   "coder": {
