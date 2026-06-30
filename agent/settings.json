@@ -10,7 +10,6 @@
   "extensions": [
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/permission-gate.ts",
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/confirm-destructive.ts",
-    "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/todo.ts",
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/handoff.ts",
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/model-status.ts",
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/session-name.ts",
