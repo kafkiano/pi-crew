@@ -2,7 +2,7 @@
   "npmCommand": [
     "bun"
   ],
-  "lastChangelogVersion": "0.80.3",
+  "lastChangelogVersion": "0.80.10",
   "packages": [
     "npm:pi-web-access",
     "npm:pi-ollama-cloud"
@@ -19,7 +19,7 @@
     "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/question.ts"
   ],
   "defaultProvider": "ollama-cloud",
-  "defaultModel": "kimi-k2.7-code",
+  "defaultModel": "glm-5.2",
   "retry": {
     "enabled": true
   },
