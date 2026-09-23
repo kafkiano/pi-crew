@@ -1,22 +1,11 @@
 {
   "npmCommand": [
-    "bun"
+    "pnpm"
   ],
-  "lastChangelogVersion": "0.80.10",
+  "lastChangelogVersion": "0.85.1",
   "packages": [
     "npm:pi-web-access",
     "npm:pi-ollama-cloud"
-  ],
-  "extensions": [
-    "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/permission-gate.ts",
-    "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/confirm-destructive.ts",
-    "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/handoff.ts",
-    "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/model-status.ts",
-    "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/session-name.ts",
-    "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/bookmark.ts",
-    "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/notify.ts",
-    "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/prompt-customizer.ts",
-    "~/.bun/install/global/node_modules/@earendil-works/pi-coding-agent/examples/extensions/question.ts"
   ],
   "defaultProvider": "ollama-cloud",
   "defaultModel": "glm-5.2",
@@ -24,5 +13,8 @@
     "enabled": true
   },
   "defaultThinkingLevel": "high",
-  "theme": "dark"
+  "theme": "dark",
+  "compaction": {
+    "enabled": true
+  }
 }

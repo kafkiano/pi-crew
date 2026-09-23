@@ -8,3 +8,15 @@ exa-usage.json
 cache
 .scratch
 models-store.json
+
+# >>> pi-crew managed extension symlinks >>>
+agent/extensions/permission-gate.ts
+agent/extensions/confirm-destructive.ts
+agent/extensions/handoff.ts
+agent/extensions/model-status.ts
+agent/extensions/session-name.ts
+agent/extensions/bookmark.ts
+agent/extensions/notify.ts
+agent/extensions/prompt-customizer.ts
+agent/extensions/question.ts
+# <<< pi-crew managed extension symlinks <<<
