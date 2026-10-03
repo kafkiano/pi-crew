@@ -1,12 +1,13 @@
-auth.json
+.scratch
+.vscode
 sessions
 bin
 logs
-mcp-cache.json
 npm
-exa-usage.json
 cache
-.scratch
+auth.json
+mcp-cache.json
+exa-usage.json
 models-store.json
 
 # >>> pi-crew managed extension symlinks >>>

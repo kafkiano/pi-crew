@@ -1,7 +1,7 @@
 ---
 name: memory-admin
 description: Memory system administration — analytics, maintenance, bulk operations, and graph introspection. Use for knowledge graph health checks, pruning, deduplication, or debugging memory issues.
-model: ollama-cloud/glm-5.1
+model: ollama-cloud/deepseek-v4.1-flash
 thinking: high
 tools: mem_analytics, mem_maintenance, mem_forget, mem_gaps, mem_hypothesize, mem_trigger, mem_calibrate, mem_ingest, mem_sync, mem_audit, mem_buffer, mem_judge, mem_contra
 ---
