@@ -2,7 +2,7 @@
   "npmCommand": [
     "pnpm"
   ],
-  "lastChangelogVersion": "1.0.0",
+  "lastChangelogVersion": "1.1.0",
   "packages": [
     "npm:pi-web-access",
     "npm:pi-ollama-cloud"

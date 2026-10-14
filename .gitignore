@@ -9,6 +9,7 @@ auth.json
 mcp-cache.json
 exa-usage.json
 models-store.json
+crashes.json
 
 # >>> pi-crew managed extension symlinks >>>
 agent/extensions/permission-gate.ts
